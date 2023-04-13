@@ -1,0 +1,1 @@
+This mode will allow the drone to avoid other vehicles, a GPS fence, or an obstacle.  
