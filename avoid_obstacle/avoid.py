@@ -161,7 +161,7 @@ while True:
         time.sleep(1)
         print("WARNING: Vehicle is approaching GPS fence!")
         vehicle.mode = VehicleMode("LAND")
-        # break
+        break
 
     if nextwaypoint==5: #Dummy waypoint - as soon as we reach waypoint 4 this is true and we exit.
         print("Exit 'standard' mission when start heading to final waypoint (5)")
