@@ -1,0 +1,4 @@
+<PrintLog> x: 30, y: 0, alt: 20, battery: 70
+<PrintLog> x: 30, y: 0, alt: 20, battery: 70
+<PrintLog> x: 30, y: 1, alt: 20, battery: 69
+<PrintLog> x: 30, y: 2, alt: 20, battery: 68
