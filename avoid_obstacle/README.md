@@ -1,1 +1,1 @@
-This application runs a mission and avoids a GPS location (obstacle).
+This application runs a mission and avoids a GPS location (static obstacle).
