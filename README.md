@@ -35,12 +35,24 @@ This will connect to the drone launched by `simvehicle.py` and run the waypoints
 ![Drone Simulation](simulation.gif)
 
 ## Install Mavlink library for building C++ applications
-Pull [mavlink](https://mavsdk.mavlink.io) as a submodule if the `Ardupilot-Modes` project is not cloned with the `--recursive` flag to pull all submodules.
+Clone the repository recursively to pull all submodules.
 ```dotnetcli
+git clone --recursive git@github.com:VUISIS/ArduPilot-Modes.git
+```
+
+If the `Ardupilot-Modes` project is not cloned with the `--recursive` flag previously, pull [Mavlink](https://mavsdk.mavlink.io) as a submodule again.
+```dotnetcli
+cd ArduPilots-Modes
 git submodule update --init --recursive
 ```
 
-Building
+Install dependencies for building `MAVSDK`
+```dotnetcli
+sudo apt update
+sudo apt install python3-pip
+``````
+
+Building MAVSDK
 ```dotnetcli
 cd modules/MAVSDK/
 cmake -Bbuild/default -DCMAKE_BUILD_TYPE=Release -H.
