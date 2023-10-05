@@ -35,50 +35,57 @@ This will connect to the drone launched by `simvehicle.py` and run the waypoints
 ![Drone Simulation](simulation.gif)
 
 ## Install Mavlink library for building C++ applications
-Clone the repository recursively to pull all submodules.
-```dotnetcli
+Clone the repository recursively to pull all submodules including `ardupilot` and `MAVSDK`
+```bash
 git clone --recursive git@github.com:VUISIS/ArduPilot-Modes.git
 ```
 
 If the `Ardupilot-Modes` project is not cloned with the `--recursive` flag previously, pull [Mavlink](https://mavsdk.mavlink.io) as a submodule again.
-```dotnetcli
+```bash
 cd ArduPilots-Modes
 git submodule update --init --recursive
 ```
 
 Install dependencies for building `MAVSDK`
-```dotnetcli
+```bash
 sudo apt update
 sudo apt install python3-pip
-``````
+```
 
-Building MAVSDK
-```dotnetcli
+Building `MAVSDK`
+```bash
 cd modules/MAVSDK/
 cmake -Bbuild/default -DCMAKE_BUILD_TYPE=Release -H.
 cmake --build build/default -j8
 ```
 
-Installing the C++ Library locally with a specific dialect selected for Ardupilot. If some libraries are missing when building, recursively pull submodules in `MAVSDK` repository and try again.
-```dotnetcli
+Installing the C++ Library locally with a specific dialect selected for Ardupilot. If some libraries are missing when building, recursively pull submodules inside `MAVSDK` repository and try again.
+```bash
 cd modules/MAVSDK/
 cmake -Bbuild -H. -DCMAKE_INSTALL_PREFIX=install -DMAVLINK_DIALECT=ardupilotmega -DMAVLINK_VERSION=2.0 
 cmake --build build --target install
 ```
 
-Building an application example in C
-```dotnetcli
+## Building and running C++ application examples
+Building an application example
+```bash
 cd auto_mode/c/
 cmake -Bbuild -H. -DCMAKE_PREFIX_PATH=$(pwd)/../../modules/MAVSDK/install 
 cmake --build build -j8
 ```
 
 Start SITL (Software in the Loop) for simulation by following the official [SITL testing tutorial](https://ardupilot.org/dev/docs/using-sitl-for-ardupilot-testing.html) for installation and running the command below.
-```dotnetcli
+```bash
 sim_vehicle.py -v Copter --console --map
 ```
 
-Running an application example in C
-```dotnetcli
+Running an application example
+```bash
 ./build/waypoints tcp://:5762
+```
+
+Optionally, A bash script is provided to automate the building and running of application examples. Make sure that the `MAVSDK` C++ library is installed and `SITL` is running in the background following the previous steps, then execute the `run.sh` script inside root directory.
+```bash
+# Please specify mode: AUTO, GUIDED, AVOID
+. ./run.sh AUTO
 ```
