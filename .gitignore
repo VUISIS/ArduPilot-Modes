@@ -134,3 +134,7 @@ dmypy.json
 *.tlog 
 *.raw
 *.DAT 
+
+# Jetbrain IDE
+.idea/
+cmake-build-debug/
