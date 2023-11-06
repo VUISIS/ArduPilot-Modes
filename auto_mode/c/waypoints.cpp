@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <mavsdk/mavsdk.h>
 #include <mavsdk/plugins/action/action.h>
+#include <mavsdk/plugins/offboard/offboard.h>
 #include <mavsdk/plugins/telemetry/telemetry.h>
 #include <mavsdk/plugins/param/param.h>
 #include <mavsdk/plugins/mission_raw/mission_raw.h>
@@ -16,6 +17,7 @@
 #include <thread>
 
 using namespace mavsdk;
+using std::chrono::milliseconds;
 using std::chrono::seconds;
 using std::this_thread::sleep_for;
 
@@ -26,7 +28,9 @@ MissionRaw::MissionItem create_mission_item(uint32_t _seq, uint32_t _frame, uint
 
 std::vector<MissionRaw::MissionItem> create_mission_raw();
 
-void test_mission_raw(mavsdk::MissionRaw& mission_raw, mavsdk::Action& action, mavsdk::Telemetry& telemetry);
+void test_guided_to_auto(std::shared_ptr<mavsdk::System> system);
+
+bool offb_ctrl_ned(mavsdk::Offboard& offboard);
 
 int main(int argc, char** argv)
 {
@@ -49,24 +53,26 @@ int main(int argc, char** argv)
         return 1;
     }
 
-    // Instantiate plugins.
-    auto telemetry = Telemetry{system.value()};
-    auto action = Action{system.value()};
-    auto mission_raw = MissionRaw{system.value()};
-    
-    // while (telemetry.health_all_ok() != true) {
-    //     std::cout << "Vehicle is getting ready to arm\n";
-    //     std::cout << "Health: " << telemetry.health();
-    //     sleep_for(seconds(5));
-    // }
-    test_mission_raw(mission_raw, action, telemetry);
+    test_guided_to_auto(system.value());
 
     std::cout << "Finished." << std::endl;
     return 0;
 }
 
-void test_mission_raw(mavsdk::MissionRaw& mission_raw, mavsdk::Action& action, mavsdk::Telemetry& telemetry)
+void test_guided_to_auto(std::shared_ptr<mavsdk::System> system)
 {
+    // Instantiate plugins.
+    auto telemetry = Telemetry{system};
+    auto action = Action{system};
+    auto offboard = Offboard{system};
+    auto mission_raw = MissionRaw{system};
+
+    // while (telemetry.health_all_ok() != true) {
+    //     std::cout << "Vehicle is getting ready to arm\n";
+    //     std::cout << "Health: " << telemetry.health();
+    //     sleep_for(seconds(5));
+    // }
+
     std::vector<MissionRaw::MissionItem> mission_plan = create_mission_raw();
 
     // Upload Mission
@@ -98,6 +104,12 @@ void test_mission_raw(mavsdk::MissionRaw& mission_raw, mavsdk::Action& action, m
         return;
     }
 
+    // telemetry.flight_mode();
+    // Subscribe to flight mode updates.
+    telemetry.subscribe_flight_mode([](Telemetry::FlightMode flight_mode) {
+        std::cout << "Flight mode: " << flight_mode << '\n';
+    });
+
     // Mission Start
     std::cout << "Starting Mission \n ";
     const MissionRaw::Result _startResult = mission_raw.start_mission();
@@ -126,6 +138,12 @@ void test_mission_raw(mavsdk::MissionRaw& mission_raw, mavsdk::Action& action, m
 
     fut.wait_for(std::chrono::seconds(120)) == std::future_status::ready;
     fut.get();
+
+
+    //  using local NED co-ordinates
+    if (!offb_ctrl_ned(offboard)) {
+        // return;
+    }
 
     // Waiting for the drone to be disarmed.
     while (telemetry.armed()) {
@@ -174,6 +192,79 @@ MissionRaw::MissionItem create_mission_item(uint32_t _seq, uint32_t _frame, uint
     new_raw_item_nav.z = _z;
     new_raw_item_nav.mission_type = 0;
     return new_raw_item_nav;
+}
+
+//
+// Does Offboard control using NED co-ordinates.
+//
+// returns true if everything went well in Offboard control
+//
+bool offb_ctrl_ned(mavsdk::Offboard& offboard)
+{
+    std::cout << "Starting Offboard velocity control in NED coordinates\n";
+
+    // Send it once before starting offboard, otherwise it will be rejected.
+    const Offboard::VelocityNedYaw stay{};
+    offboard.set_velocity_ned(stay);
+
+    Offboard::Result offboard_result = offboard.start();
+    if (offboard_result != Offboard::Result::Success) {
+        std::cerr << "Offboard start failed: " << offboard_result << '\n';
+        return false;
+    }
+
+    std::cout << "Offboard started\n";
+    std::cout << "Turn to face East\n";
+
+    Offboard::VelocityNedYaw turn_east{};
+    turn_east.yaw_deg = 90.0f;
+    offboard.set_velocity_ned(turn_east);
+    sleep_for(seconds(1)); // Let yaw settle.
+
+    {
+        const float step_size = 0.01f;
+        const float one_cycle = 2.0f * (float)M_PI;
+        const unsigned steps = 2 * unsigned(one_cycle / step_size);
+
+        std::cout << "Go North and back South\n";
+
+        for (unsigned i = 0; i < steps; ++i) {
+            float vx = 5.0f * sinf(i * step_size);
+            Offboard::VelocityNedYaw north_and_back_south{};
+            north_and_back_south.north_m_s = vx;
+            north_and_back_south.yaw_deg = 90.0f;
+            offboard.set_velocity_ned(north_and_back_south);
+            sleep_for(milliseconds(10));
+        }
+    }
+
+    std::cout << "Turn to face West\n";
+    Offboard::VelocityNedYaw turn_west{};
+    turn_west.yaw_deg = 270.0f;
+    offboard.set_velocity_ned(turn_west);
+    sleep_for(seconds(2));
+
+    std::cout << "Go up 2 m/s, turn to face South\n";
+    Offboard::VelocityNedYaw up_and_south{};
+    up_and_south.down_m_s = -2.0f;
+    up_and_south.yaw_deg = 180.0f;
+    offboard.set_velocity_ned(up_and_south);
+    sleep_for(seconds(4));
+
+    std::cout << "Go down 1 m/s, turn to face North\n";
+    Offboard::VelocityNedYaw down_and_north{};
+    up_and_south.down_m_s = 1.0f;
+    offboard.set_velocity_ned(down_and_north);
+    sleep_for(seconds(4));
+
+    offboard_result = offboard.stop();
+    if (offboard_result != Offboard::Result::Success) {
+        std::cerr << "Offboard stop failed: " << offboard_result << '\n';
+        return false;
+    }
+    std::cout << "Offboard stopped\n";
+
+    return true;
 }
 
 void usage(const std::string& bin_name)
