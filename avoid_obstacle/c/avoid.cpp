@@ -6,6 +6,7 @@
 #include <mavsdk/plugins/telemetry/telemetry.h>
 #include <mavsdk/plugins/param/param.h>
 #include <mavsdk/plugins/mission_raw/mission_raw.h>
+#include <mavsdk/plugins/transponder/transponder.h>
 
 #include <iostream>
 #include <future>
@@ -60,9 +61,16 @@ int main(int argc, char** argv)
     auto telemetry = Telemetry{system.value()};
     auto action = Action{system.value()};
     auto mission_raw = MissionRaw{system.value()};
+
+    // The plugin to set up parameters.
     auto param = Param{system.value()};
 
-    // param.set_param_int("RC0_OPTION", 38);
+    // Instantiate Transponder plugin.
+    auto transponder = Transponder{system.value()};
+
+    // TODO: This param setting does not work after 5 retries.
+    // param.set_param_int("RCx_OPTION", 38);
+
     param.set_param_int("AVD_ENABLE", 1);
     param.set_param_int("AVD_F_DIST_XY", 10);
     param.set_param_int("AVD_F_DIST_Z", 10);
@@ -71,8 +79,38 @@ int main(int argc, char** argv)
     // (i.e. 2:Climb Or Descend, 3:Move Horizontally, 4:Move Perpendicularly in 3D, 5:RTL or 6:Hover)
     param.set_param_int("AVD_F_ACTION", 5);
     param.set_param_int("AVD_F_RCVRY", 1);
-    
 
+    // Set this param for the SITL simulation of receiving ADS-B signals from multiple nearby drones
+    param.set_param_int("SIM_ADSB_COUNT", 10);
+    
+    // We want to listen to the transponder of the drone at 1 Hz.
+    std::cout << "Setting transponder update rate\n";
+    const Transponder::Result set_rate_result = transponder.set_rate_transponder(1.0);
+    if (set_rate_result != Transponder::Result::Success) {
+        std::cerr << "Setting rate failed:" << set_rate_result << '\n';
+        return 1;
+    }
+
+    // Set up callback to monitor transponder activity
+    std::cout << "Setting transponder subscription\n";
+    transponder.subscribe_transponder([](Transponder::AdsbVehicle adsbVehicle) {
+        std::cout << "ICAO Address: " << adsbVehicle.icao_address << '\n'
+                  << "Latitude: " << adsbVehicle.latitude_deg << " deg\n"
+                  << "Longitude: " << adsbVehicle.longitude_deg << " deg\n"
+                  << "Absolute Altitude: " << adsbVehicle.absolute_altitude_m << " m\n"
+                  << "Heading: " << adsbVehicle.heading_deg << " deg\n"
+                  << "Horizontal Velocity: " << adsbVehicle.horizontal_velocity_m_s << " m/s\n"
+                  << "Vertical Velocity: " << adsbVehicle.vertical_velocity_m_s << " m/s\n"
+                  << "Call Sign: " << adsbVehicle.callsign << '\n'
+                  << "Emitter Type: " << adsbVehicle.emitter_type << '\n'
+                  << "Squawk: " << adsbVehicle.squawk << '\n';
+    });
+
+    // Search for aircraft transponders
+    sleep_for(seconds(120));
+    std::cout << "Finished...\n";
+
+    return 0;
 
 }
 
