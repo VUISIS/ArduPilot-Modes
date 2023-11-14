@@ -9,6 +9,8 @@ cmake --build build --target install)
 
 # Run the following command in a separate terminal
 # sim_vehicle.py -v ArduCopter --console --map 
+# Run the following command for or ADSB simulation and may need change the serial port number.
+# sim_vehicle.py -v ArduCopter -A "--uartC uart:/dev/ttyS3:57600"
 
 if [ "$1" = AUTO ] ; then
     MODE_DIR="auto_mode/c"
@@ -30,4 +32,5 @@ fi
 (cd $MODE_DIR && 
 cmake -Bbuild -H. -DCMAKE_PREFIX_PATH=$(pwd)/../../modules/MAVSDK/install && 
 cmake --build build -j8 &&
-./build/$EXECUTABLE_NAME tcp://:5762)
+# You may need to change the port number according to your simulation environment
+./build/$EXECUTABLE_NAME tcp://:5763)
