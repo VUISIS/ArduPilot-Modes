@@ -49,7 +49,7 @@ git submodule update --init --recursive
 Install dependencies for building `MAVSDK`
 ```bash
 sudo apt update
-sudo apt install python3-pip
+sudo apt install python3-pip cmake
 ```
 
 Building `MAVSDK`
