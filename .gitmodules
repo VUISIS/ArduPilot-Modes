@@ -4,3 +4,6 @@
 [submodule "modules/MAVSDK"]
 	path = modules/MAVSDK
 	url = https://github.com/VUISIS/MAVSDK.git
+[submodule "modules/mavlink"]
+	path = modules/mavlink
+	url = git@github.com:ArduPilot/mavlink.git
