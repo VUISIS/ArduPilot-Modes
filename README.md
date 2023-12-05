@@ -37,7 +37,7 @@ This will connect to the drone launched by `simvehicle.py` and run the waypoints
 ## Clone the project including all submodules
 Clone the repository recursively to pull all submodules including `mavlink`, `ardupilot` and `MAVSDK`. Note that both `ardupilot` and `MAVSDK` are forks under VUISIS organization while `mavlink` is not the original one but a fork from Ardupilot organization. We maintain separate forks to keep the dependencies stable and also add experimental new features to our forks.
 ```bash
-git clone --recursive git@github.com:VUISIS/ArduPilot-Modes.git
+git clone --recursive https://github.com/VUISIS/ArduPilot-Modes.git
 ```
 
 If the `Ardupilot-Modes` project is not cloned with the `--recursive` flag previously, pull all submodules again.
