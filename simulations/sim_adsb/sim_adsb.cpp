@@ -82,7 +82,6 @@ int main(int argc, char* argv[])
 }
 
 
-
 void receive_some(int socket_fd, struct sockaddr_in* src_addr, socklen_t* src_addr_len, bool* src_addr_set)
 {
     // printf("Receiving ...\n");
@@ -139,8 +138,6 @@ void handle_fence_breach(const mavlink_message_t* message)
         case FENCE_BREACH_BOUNDARY:
             printf("Boundary Breach\n");
             break;
-         
-
     }
 }
 
