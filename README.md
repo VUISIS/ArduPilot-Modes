@@ -59,6 +59,13 @@ sudo cmake -Bbuild -H. -DCMAKE_INSTALL_PREFIX=install -DMAVLINK_DIALECT=ardupilo
 sudo cmake --build build --target install
 ```
 
+[mavlink](https://github.com/mavlink/mavlink) has one [fork](https://github.com/ArduPilot/mavlink) under Ardupilot organization. If you decide to use a different fork of mavlink, change the links in `.gitmodules` while keeping the same submodule path and run the following commands to clear the index. 
+```bash
+sudo rm -rf modules/mavlink
+git submodule sync
+git submodule update --init --recursive --remote
+```
+
 ## Build and run mavlink C++ application
 Skip this step if you are not running any simulation application using mavlink C++ library directly.
 ```bash
@@ -72,6 +79,8 @@ Install dependencies for building `MAVSDK`
 ```bash
 sudo apt update
 sudo apt install python3 python3-pip cmake
+# If your default python command still points to python 2, install this package to redirect it to python 3. 
+sudo apt install python-is-python3
 ```
 
 Building `MAVSDK`
@@ -96,10 +105,33 @@ cmake -Bbuild -H. -DCMAKE_PREFIX_PATH=$(pwd)/../../modules/MAVSDK/install
 cmake --build build -j8
 ```
 
-Start SITL (Software in the Loop) for simulation by following the official [SITL testing tutorial](https://ardupilot.org/dev/docs/using-sitl-for-ardupilot-testing.html) for installation and running the command below.
+Start SITL (Software in the Loop) for simulation by following the official [SITL testing tutorial](https://ardupilot.org/dev/docs/using-sitl-for-ardupilot-testing.html) for installation and the python script `sim_vehicle.py` can be run from anywhere as a global command.
 ```bash
 sim_vehicle.py -v Copter --console --map
 ```
+
+If you want to modify the behavior of the default SITL or try some experimental features we have implemented, please switch to our [VUISIS fork of ardupilot](https://github.com/VUISIS/ardupilot) and run `/Tools/autotest/sim_vehicle.py` inside ardupilot.
+```bash
+cd modules/ardupilot
+
+# Install required dependencies for Ubuntu and reboot your machine
+Tools/environment_install/install-prereqs-ubuntu.sh -y
+# Reload the path (log-out and log-in to make permanent)
+. ~/.profile
+
+# Pull and update all submodules in case you didn't clone the main project recursively
+git submodule init
+git submodule update --recursive
+./Tools/gittools/submodule-sync.sh
+
+# Build and compile
+./waf configure --board sitl
+./waf clean
+./waf copter
+
+# Run SITL simulation
+python sim_vehicle.py -v Copter --console --map
+``` 
 
 Running an application example
 ```bash
