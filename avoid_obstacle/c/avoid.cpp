@@ -80,8 +80,10 @@ int main(int argc, char** argv)
     param.set_param_int("AVD_F_ACTION", 5);
     param.set_param_int("AVD_F_RCVRY", 1);
 
-    // Set this param for the SITL simulation of receiving ADS-B signals from multiple nearby drones
+    // Set the number of simulated drones sending ADS-B signals in the SITL simulation.
     param.set_param_int("SIM_ADSB_COUNT", 10);
+    // This param must be set to a non-zero value or ADS-B feature will be disabled.
+    param.set_param_int("ADSB_TYPE", 1);
     
     // We want to listen to the transponder of the drone at 1 Hz.
     std::cout << "Setting transponder update rate\n";
