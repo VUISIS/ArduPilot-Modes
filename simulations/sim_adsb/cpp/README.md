@@ -3,7 +3,7 @@ First of all, make sure mavlink is installed correctly as a submodule under root
 
 ## Build and compile
 ```bash
-cmake -Bbuild -H. -DCMAKE_PREFIX_PATH=$(pwd)/../../modules/mavlink/install
+cmake -Bbuild -H. -DCMAKE_PREFIX_PATH=$(pwd)/../../../modules/mavlink/install
 
 cmake --build build
 ```
