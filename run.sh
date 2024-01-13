@@ -24,8 +24,11 @@ elif [ "$1" = AVOID ] ; then
 elif [ "$1" = GEOFENCE ]; then
     MODE_DIR=geofence/c
     EXECUTABLE_NAME="geofence"
+elif [ "$1" = MONITOR ]; then
+    MODE_DIR=traffic_monitor/c
+    EXECUTABLE_NAME="traffic_monitor"
 else
-    echo "Please specify mode: AUTO, GUIDED, AVOID"
+    echo "Please specify mode: AUTO, GUIDED, AVOID, MONITOR"
     return
 fi
 
