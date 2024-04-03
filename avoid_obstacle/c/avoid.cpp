@@ -71,6 +71,9 @@ int main(int argc, char** argv)
     // TODO: This param setting does not work after 5 retries.
     // param.set_param_int("RCx_OPTION", 38);
 
+    // Enable Lua scripting
+    param.set_param_int("SCR_ENABLE", 1);
+
     param.set_param_int("AVD_ENABLE", 1);
     param.set_param_int("AVD_F_DIST_XY", 10);
     param.set_param_int("AVD_F_DIST_Z", 10);

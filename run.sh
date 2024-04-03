@@ -3,9 +3,9 @@
 git submodule update --init --recursive
 
 # Install MAVSDK
-(cd modules/MAVSDK &&
-cmake -Bbuild -H. -DCMAKE_INSTALL_PREFIX=install -DMAVLINK_DIALECT=ardupilotmega -DMAVLINK_VERSION=2.0 &&
-cmake --build build --target install)
+# (cd modules/MAVSDK &&
+# cmake -Bbuild -H. -DCMAKE_INSTALL_PREFIX=install -DMAVLINK_DIALECT=ardupilotmega -DMAVLINK_VERSION=2.0 &&
+# cmake --build build --target install)
 
 # Run the following command in a separate terminal
 # sim_vehicle.py -v ArduCopter --console --map 
@@ -19,6 +19,8 @@ elif [ "$1" = GUIDED ] ; then
     MODE_DIR=guided_mode/c
     EXECUTABLE_NAME="guided"
 elif [ "$1" = AVOID ] ; then
+    # Move lua script to /scripts folder in ardupilot main directory
+    mkdir -p modules/ardupilot/scripts && cp avoid_obstacle/lua/*.lua modules/ardupilot/scripts/
     MODE_DIR=avoid_obstacle/c
     EXECUTABLE_NAME="avoid"
 elif [ "$1" = GEOFENCE ]; then
